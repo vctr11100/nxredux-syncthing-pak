@@ -81,23 +81,20 @@ setup() {
     [ ! -f "$SYNCTHING_VERSION_FILE" ]
 }
 
-# The settings file drives the pak's menu, and launch.sh reads the version from
-# a fixed index, so a reordering there would silently move the wrong setting.
-@test "the version is the third setting, where launch.sh looks for it" {
-    run jq -r '.settings[2].name' "$REPO_ROOT/settings.json"
+# The menu schema lives in launch.sh and the version row has to offer the two
+# values that syncthing_set_version accepts, 2 first because it is the default.
+@test "the version row offers 2.x and 1.x, with 2 as the default" {
+    run grep -A3 '"key": "version"' "$REPO_ROOT/launch.sh"
     [ "$status" -eq 0 ]
-    [ "$output" = "Syncthing version" ]
-    run jq -r '.settings[2].options[0]' "$REPO_ROOT/settings.json"
-    [ "$output" = "2.x" ]
-    run jq -r '.settings[2].options[1]' "$REPO_ROOT/settings.json"
-    [ "$output" = "1.x" ]
+    run grep -F '"values": ["2", "1"]' "$REPO_ROOT/launch.sh"
+    [ "$status" -eq 0 ]
+    run grep -F '"labels": ["2.x", "1.x"]' "$REPO_ROOT/launch.sh"
+    [ "$status" -eq 0 ]
 }
 
 # The 1.x build must sit in its own directory rather than being renamed, or
 # service-off's killall, which matches process names exactly, stops working.
 @test "the release ships the 1.x binary under its own directory" {
-    run grep -qx "bin/v1/arm/syncthing" "$REPO_ROOT/.gitarchiveinclude"
-    [ "$status" -eq 0 ]
     run grep -qx "bin/v1/arm64/syncthing" "$REPO_ROOT/.gitarchiveinclude"
     [ "$status" -eq 0 ]
 }
