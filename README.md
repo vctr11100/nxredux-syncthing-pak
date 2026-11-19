@@ -1,56 +1,52 @@
-# minui-syncthing.pak
+# nxredux-syncthing-pak
 
-A MinUI app wrapping [`syncthing`](https://syncthing.net/), a continuous file synchronization program.
+A [Syncthing](https://syncthing.net/) launcher for **NX Redux**, the custom firmware for TrimUI handhelds. Turn Syncthing on and off from the console's `Tools` menu and keep your saves, ROMs and other files in sync with your other devices.
+
+This is a fork of [`josegonzalez/minui-syncthing-pak`](https://github.com/josegonzalez/minui-syncthing-pak), which targets NextUI and MinUI. The Syncthing handling is upstream's work; this fork replaces the NextUI-specific menu with NX Redux's native settings screen and fixes the environment differences between the two firmwares.
 
 > [!NOTE]
 > This pak does not rename files on disk before or after syncing, and cannot be used
-> as a compatibility layer between MinUI and Retroarch-compatible handhelds. Files
-> are synced as written to disk by other tools.
+> as a compatibility layer between handhelds. Files are synced as written to disk by other tools.
 
 ## Requirements
 
-This pak is designed and tested on the following MinUI Platforms and devices:
+- **Firmware:** NX Redux (tested on v2.5.1).
+- **Device:** TrimUI Brick Pro (`tg5040`, arm64). The Brick and Smart Pro share the same platform and should work, but they are untested.
+- **Network:** the device must be connected to WiFi.
 
-- `h700`: Anbernic RG34XX, RG34XX SP, RG35XX Plus, RG35XX 2024, RG35XX H, RG35XX Pro, RG35XX SP, RG40XX H, RG40XX V, RG CubeXX and RG SP, running NextUI on BaseOS
-- `miyoomini`: Miyoo Mini Plus (_not_ the Miyoo Mini)
-- `my282`: Miyoo A30
-- `my355`: Miyoo Flip
-- `rg35xxplus`: RG-35XX Plus, RG-34XX, RG-35XX H, RG-35XX SP
-- `tg5040`: Trimui Brick (formerly `tg3040`), Trimui Smart Pro
-- `tg5050`: Trimui Smart Pro S
-
-Use the correct platform for your device.
+Not supported: NextUI, MinUI and other firmwares. Use the [upstream pak](https://github.com/josegonzalez/minui-syncthing-pak) for those.
 
 ## Installation
 
 1. Mount your device's SD card.
-2. Download the latest release from Github. It will be named `Syncthing.pak.zip`.
-3. Copy the zip file to `/Tools/$PLATFORM/Syncthing.pak.zip`.
-4. Extract the zip in place, then delete the zip file.
-5. Confirm that there is a `/Tools/$PLATFORM/Syncthing.pak/launch.sh` file on your SD card.
-6. Unmount your SD Card and insert it into your device.
+2. Download `Syncthing.pak.zip` from this repository's Releases page.
+3. Extract it into `Tools/tg5040/` so that `Tools/tg5040/Syncthing.pak/launch.sh` exists on the SD card.
+4. Unmount the card and put it back in the device.
 
 ## Usage
 
-Browse to `Tools > Syncthing` and press `A` to turn on the syncthing server.
+Open `Tools > Syncthing`. The menu has one entry, `Settings`, with three rows:
 
-This pak runs on port 8384 (HTTP UI).
+- **Enabled:** starts or stops the Syncthing service.
+- **Start on boot:** starts Syncthing automatically when the device boots. Off by default.
+- **Syncthing version:** `2.x` (default) or `1.x`. See below.
 
-The default credentials are:
+Press `B` to apply your changes. The menu reopens with the current status on the hint line (for example `Running: http://192.168.1.20:8384`), and closes when you leave it without changing anything.
 
-- `minui:minui`
+The web UI listens on port 8384, so from a computer on the same network open `http://<device-ip>:8384`. The default credentials are `minui` / `minui`; **change them in the web UI** under `Actions > Settings > GUI`.
 
 ### Syncthing version
 
 The `Syncthing version` setting chooses between Syncthing 2.x, the default, and
 Syncthing 1.x.
 
+_The next two paragraphs come from upstream's testing on NextUI. They have not been measured on NX Redux. If your SD card is FAT32 or exFAT and Syncthing 2.x logs disk I/O errors, switch to 1.x._
+
 Syncthing 2.x keeps its index in an SQLite database, and SQLite cannot run on a
 FAT filesystem. MinUI and NextUI require the card to be exFAT or FAT32, so on
 `h700` Syncthing 2.x reports `disk I/O error: input/output error` every few
 seconds, and each failure drops a peer connection. Selecting `1.x` avoids this:
-Syncthing 1.x keeps its index in LevelDB, which is unaffected. The pak shows a
-note on `h700` while 2.x is selected.
+Syncthing 1.x keeps its index in LevelDB, which is unaffected.
 
 Other platforms are less affected. On `tg5040` Syncthing 2.x produces no errors
 in testing; its index journal simply never consolidates, so the database grows
@@ -84,11 +80,11 @@ Worth knowing before switching:
 
 ### Debug Logging
 
-Debug logs are written to the`$SDCARD_PATH/.userdata/$PLATFORM/logs/` folder.
+Logs are written to `.userdata/tg5040/logs/` on the SD card: `Syncthing.txt` (the launcher), `Syncthing.options.txt` (the menu), `Syncthing.service.txt` (Syncthing itself).
 
 ## Development
 
-- `make build` downloads the bundled binaries for every platform.
+- `make build` downloads the bundled Syncthing binaries (arm64 only).
 - `make test` runs the [bats](https://github.com/bats-core/bats-core) suite in `tests/`.
 
 Both Syncthing versions are bundled: 2.x in `bin/<arch>/syncthing` and 1.x in
@@ -98,3 +94,18 @@ with `killall`, which matches process names exactly. The 1.x pin is final, becau
 v1.30.0 is the last release of that line.
 
 A scheduled workflow opens a pull request when Syncthing publishes a new stable release, named and laid out like the dependabot pull requests for GitHub Actions. Each release gets its own `deps/github_releases/syncthing/syncthing-<version>` branch, an older open bump is closed as superseded by the newer one, and a bump closed without merging is not reopened. The workflow needs a `GH_ACCESS_TOKEN` repository secret with read and write access to contents and pull requests. Without it, the default workflow token can only open pull requests when "Allow GitHub Actions to create and approve pull requests" is enabled in the repository's Actions settings, and the pull requests it opens do not trigger CI.
+
+### Staying in sync with upstream
+
+```sh
+git remote add upstream https://github.com/josegonzalez/minui-syncthing-pak
+git fetch upstream
+git log --oneline HEAD..upstream/main   # what is new upstream
+git merge upstream/main                 # expect conflicts in launch.sh, Makefile, pak.json
+```
+
+`launch.sh`, the `Makefile` and `pak.json` are rewritten in this fork, so upstream changes to them need merging by hand. The scripts in `bin/` are unchanged from upstream and merge cleanly.
+
+## License
+
+The original license is kept in `LICENSE`. Credit for the pak goes to [josegonzalez](https://github.com/josegonzalez); Syncthing is developed by the [Syncthing contributors](https://github.com/syncthing/syncthing).

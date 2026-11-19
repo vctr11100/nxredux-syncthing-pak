@@ -1,18 +1,12 @@
 {
   "name": "Syncthing",
   "type": "TOOL",
-  "description": "Manages Syncthing",
-  "author": "josegonzalez",
-  "repo_url": "https://github.com/josegonzalez/minui-syncthing-pak",
+  "description": "Toggles Syncthing on NX Redux",
+  "author": "vctr11100 (fork of josegonzalez)",
+  "repo_url": "https://github.com/josegonzalez/nxredux-syncthing-pak",
   "release_filename": "Syncthing.pak.zip",
   "platforms": [
-    "h700",
-    "miyoomini",
-    "my282",
-    "my355",
-    "rg35xxplus",
-    "tg5040",
-    "tg5050"
+    "tg5040"
   ],
   "launch": "launch.sh",
   "version": "0.10.0"
