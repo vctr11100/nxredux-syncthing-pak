@@ -95,17 +95,6 @@ v1.30.0 is the last release of that line.
 
 A scheduled workflow opens a pull request when Syncthing publishes a new stable release, named and laid out like the dependabot pull requests for GitHub Actions. Each release gets its own `deps/github_releases/syncthing/syncthing-<version>` branch, an older open bump is closed as superseded by the newer one, and a bump closed without merging is not reopened. The workflow needs a `GH_ACCESS_TOKEN` repository secret with read and write access to contents and pull requests. Without it, the default workflow token can only open pull requests when "Allow GitHub Actions to create and approve pull requests" is enabled in the repository's Actions settings, and the pull requests it opens do not trigger CI.
 
-### Staying in sync with upstream
-
-```sh
-git remote add upstream https://github.com/josegonzalez/minui-syncthing-pak
-git fetch upstream
-git log --oneline HEAD..upstream/main   # what is new upstream
-git merge upstream/main                 # expect conflicts in launch.sh, Makefile, pak.json
-```
-
-`launch.sh`, the `Makefile` and `pak.json` are rewritten in this fork, so upstream changes to them need merging by hand. The scripts in `bin/` are unchanged from upstream and merge cleanly.
-
 ## License
 
 The original license is kept in `LICENSE`. Credit for the pak goes to [josegonzalez](https://github.com/josegonzalez); Syncthing is developed by the [Syncthing contributors](https://github.com/syncthing/syncthing).
